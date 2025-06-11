@@ -70,17 +70,13 @@
 
         packages.default = pkgs.buildGoModule {
           inherit pname version;
-
           src = builtins.path {
             path = ./.;
             name = "source";
           };
-
           vendorHash = "sha256-xff/2Dgv3PjsjB/Uf0GLL32M7NwJ1bAwwusnxlOdDJQ=";
-
-          nativeBuildInputs = with pkgs; [
-            gh
-          ];
+          CGO_ENABLED = 0;
+          ldflags = ["-s" "-w"];
         };
 
         checks = {
