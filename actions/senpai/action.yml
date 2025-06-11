@@ -4,19 +4,25 @@ inputs:
   gemini_api_key:
     description: Google AI Studio key
     required: true
+  github_token:
+    description: GitHub token for gh CLI
+    required: false
 runs:
   using: composite
   steps:
     - name: Resolve latest tag
       id: tag
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token || github.token }}
       run: |
         tag=$(gh release list \
                 --repo "${GITHUB_REPOSITORY}" \
-                --limit 1              \
-                --json tagName         \
+                --limit 1 \
+                --json tagName \
                 --jq '.[0].tagName')
         echo "tag=$tag" >>"$GITHUB_OUTPUT"
+
     - name: Download latest senpai binary
       shell: bash
       run: |
@@ -24,6 +30,7 @@ runs:
           "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.tag.outputs.tag }}/senpai" \
           -o senpai
         chmod +x senpai
+
     - name: Run senpai
       shell: bash
       env:
