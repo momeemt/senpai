@@ -7,11 +7,21 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Resolve latest tag
+      id: tag
+      shell: bash
+      run: |
+        tag=$(gh release list \
+                --repo "${GITHUB_REPOSITORY}" \
+                --limit 1              \
+                --json tagName         \
+                --jq '.[0].tagName')
+        echo "tag=$tag" >>"$GITHUB_OUTPUT"
     - name: Download latest senpai binary
       shell: bash
       run: |
         curl -sSL \
-          "https://github.com/${{ github.repository }}/releases/latest/download/senpai" \
+          "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.tag.outputs.tag }}/senpai" \
           -o senpai
         chmod +x senpai
     - name: Run senpai
