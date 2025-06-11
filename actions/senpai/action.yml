@@ -17,17 +17,20 @@ runs:
         GH_TOKEN: ${{ inputs.github_token || github.token }}
       run: |
         tag=$(gh release list \
-                --repo "${GITHUB_REPOSITORY}" \
+                --repo "momeemt/senpai" \
                 --limit 1 \
                 --json tagName \
                 --jq '.[0].tagName')
+        if [[ -z "$tag" ]]; then
+          echo "No release found in momeemt/senpai"; exit 1
+        fi
         echo "tag=$tag" >>"$GITHUB_OUTPUT"
 
     - name: Download latest senpai binary
       shell: bash
       run: |
         curl -sSL \
-          "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.tag.outputs.tag }}/senpai" \
+          "https://github.com/momeemt/senpai/releases/download/${{ steps.tag.outputs.tag }}/senpai" \
           -o senpai
         chmod +x senpai
 
