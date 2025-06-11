@@ -38,5 +38,6 @@ runs:
       shell: bash
       env:
         GEMINI_API_KEY: ${{ inputs.gemini_api_key }}
+        GH_TOKEN:  ${{ inputs.github_token || github.token }}
       run: ./senpai
 
