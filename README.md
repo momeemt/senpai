@@ -1,4 +1,6 @@
-# senpai
+# 🐶 Senpai
+
+![senpai.png](./senpai.png)
 
 MarkdownファイルをLLMに渡して有用なアドバイスをもらい、Issueを作成してもらうツールです。どのようなアドバイスがされるかは以下のリポジトリのIssueを確認してください。
 
@@ -22,7 +24,7 @@ MarkdownファイルをLLMに渡して有用なアドバイスをもらい、Iss
 GitHub Actionsのワークフローから利用できます。
 実行には[Google AI Studio](https://aistudio.google.com/)で取得できるAPIキーが必要です。
 
-```
+```yml
 name: Senpai
 on:
   schedule:
@@ -47,7 +49,7 @@ jobs:
 
 Flakesを有効にしたNixを使って、以下のコマンドから実行できます。
 
-```
+```sh
 nix run "github:momeemt/senpai"
 ```
 
