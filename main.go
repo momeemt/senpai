@@ -65,25 +65,34 @@ func buildSchema() *genai.Schema {
 	}
 }
 
-func getExistingTitles() ([]string, error) {
+type issueInfo struct {
+	Title string
+	Body  string
+}
+
+func getExistingIssues() ([]issueInfo, error) {
 	cmd := exec.Command("gh", "issue", "list",
-		"--state", "all",
-		"--json", "title",
+		// only open issues are relevant; closed ones are considered done
+		"--state", "open",
+		"--json", "title,body",
 		"--limit", "1000",
 	)
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
-	var rows []struct{ Title string }
+	var rows []struct {
+		Title string `json:"title"`
+		Body  string `json:"body"`
+	}
 	if err := json.Unmarshal(out, &rows); err != nil {
 		return nil, err
 	}
-	var titles []string
+	var issues []issueInfo
 	for _, r := range rows {
-		titles = append(titles, r.Title)
+		issues = append(issues, issueInfo{Title: r.Title, Body: r.Body})
 	}
-	return titles, nil
+	return issues, nil
 }
 
 type advice struct {
@@ -115,11 +124,15 @@ func main() {
 
 	modelName := "gemini-2.5-flash-preview-05-20"
 
-	existing, err := getExistingTitles()
+	existing, err := getExistingIssues()
 	if err != nil {
 		log.Fatal(err)
 	}
-	existingTitles := strings.Join(existing, " / ")
+	var infos []string
+	for _, iss := range existing {
+		infos = append(infos, fmt.Sprintf("Title: %s\nBody: %s", iss.Title, iss.Body))
+	}
+	existingInfo := strings.Join(infos, "\n---\n")
 
 	prompt := fmt.Sprintf(`あなたは情報科学の博士号を持っている経験豊富なエンジニアの先輩です。
 私は情報科学を専攻している学生で、勉強したことをMarkdownでノートを取っています。
@@ -131,9 +144,13 @@ advanced = 大学教育で教えられる情報科学の範疇を超えて、さ
 1つのアドバイスでは1つの項目について触れてください。集中して勉強できるように、できるだけ範囲を絞ってアドバイスを作成してください。
 指摘の際には必ず"Path: "で示したファイル名を含めてください。
 
-すでに存在するタイトル一覧: %s
+この後に表示するIssueのタイトルと文章を確認し、同じ内容のIssueを絶対に作成しないでください。反覆を避けるために、非常に注意して新しいアドバイスを作成してください。
 
-%s`, existingTitles, allNotes)
+## 既存Issue
+%s
+
+## ノート
+%s`, existingInfo, allNotes)
 
 	cfgGen := &genai.GenerateContentConfig{
 		ResponseMIMEType: "application/json",
